@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="dark_background">#1C1916</color>
+    <color name="light_background">#F7F0E4</color>
+    <string name="app_name">Jarvis</string>
+    <style name="Theme.Jarvis" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/light_background</item>
+        <item name="android:statusBarColor">@color/light_background</item>
+        <item name="android:navigationBarColor">@color/light_background</item>
+    </style>
+</resources>

@@ -11,5 +11,4 @@ Base = declarative_base()
 
 
 def init_db():
-    """Create all tables. Safe to call every startup - only creates what's missing."""
     Base.metadata.create_all(bind=engine)

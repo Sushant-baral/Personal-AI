@@ -2,10 +2,10 @@ import logging
 
 from fastapi import APIRouter, HTTPException
 
-from app.ai.ollama import chat
 from app.database.database import SessionLocal
 from app.database.models import Conversation, Message, Memory
 from app.memory.embeddings import get_embedding
+from app.memory.rag import answer_with_context
 from app.memory.vector_store import add_vector, search
 from app.schemas.chat import ChatRequest, ChatResponse
 from app.schemas.memory import MemoryCreate, MemoryResponse
@@ -13,25 +13,40 @@ from app.schemas.memory import MemoryCreate, MemoryResponse
 router = APIRouter()
 logger = logging.getLogger("jarvis")
 
+MAX_HISTORY_MESSAGES = 6
+
 
 @router.post("/chat", response_model=ChatResponse)
 def chat_endpoint(request: ChatRequest):
     db = SessionLocal()
     try:
-        # For Phase 1, each request creates its own conversation.
-        # We'll add multi-turn conversation continuity in a later step.
-        conversation = Conversation()
-        db.add(conversation)
-        db.flush()  # get conversation.id without committing yet
+        if request.conversation_id is not None:
+            conversation = db.get(Conversation, request.conversation_id)
+            if conversation is None:
+                raise HTTPException(status_code=404, detail="Conversation not found")
+        else:
+            conversation = Conversation()
+            db.add(conversation)
+            db.flush()
+
+        recent = (
+            db.query(Message)
+            .filter(Message.conversation_id == conversation.id)
+            .order_by(Message.id.desc())
+            .limit(MAX_HISTORY_MESSAGES)
+            .all()
+        )
+        recent.reverse()
+        history = [{"role": m.role, "content": m.content} for m in recent]
 
         db.add(Message(conversation_id=conversation.id, role="user", content=request.message))
 
-        answer = chat(request.message)
+        answer = answer_with_context(request.message, history=history)
 
         db.add(Message(conversation_id=conversation.id, role="assistant", content=answer))
         db.commit()
 
-        return ChatResponse(answer=answer)
+        return ChatResponse(answer=answer, conversation_id=conversation.id)
     except RuntimeError as e:
         db.rollback()
         logger.error(f"Chat failed: {e}")

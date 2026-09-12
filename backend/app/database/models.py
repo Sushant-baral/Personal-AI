@@ -20,7 +20,7 @@ class Message(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     conversation_id: Mapped[int] = mapped_column(ForeignKey("conversations.id"))
-    role: Mapped[str] = mapped_column(String(20))  # "user" or "assistant"
+    role: Mapped[str] = mapped_column(String(20))
     content: Mapped[str] = mapped_column(Text)
     timestamp: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
@@ -32,5 +32,5 @@ class Memory(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     content: Mapped[str] = mapped_column(Text)
-    source: Mapped[str] = mapped_column(String(50))  # e.g. "user"
+    source: Mapped[str] = mapped_column(String(50))
     timestamp: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
