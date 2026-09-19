@@ -34,3 +34,10 @@ class Memory(Base):
     content: Mapped[str] = mapped_column(Text)
     source: Mapped[str] = mapped_column(String(50))
     timestamp: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+class Setting(Base):
+    __tablename__ = "settings"
+
+    key: Mapped[str] = mapped_column(String(50), primary_key=True)
+    value: Mapped[str] = mapped_column(String(200))

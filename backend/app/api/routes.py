@@ -3,17 +3,24 @@ import logging
 from fastapi import APIRouter, HTTPException
 
 from app.database.database import SessionLocal
-from app.database.models import Conversation, Message, Memory
+from app.database.models import Conversation, Message, Memory, Setting
 from app.memory.embeddings import get_embedding
 from app.memory.rag import answer_with_context
 from app.memory.vector_store import add_vector, search
 from app.schemas.chat import ChatRequest, ChatResponse
 from app.schemas.memory import MemoryCreate, MemoryResponse
+from app.schemas.settings import SettingsResponse, SettingsUpdate
 
 router = APIRouter()
 logger = logging.getLogger("jarvis")
 
 MAX_HISTORY_MESSAGES = 6
+DEFAULT_ASSISTANT_NAME = "Assistant"
+
+
+def _get_assistant_name(db) -> str:
+    setting = db.get(Setting, "assistant_name")
+    return setting.value if setting else DEFAULT_ASSISTANT_NAME
 
 
 @router.post("/chat", response_model=ChatResponse)
@@ -41,7 +48,8 @@ def chat_endpoint(request: ChatRequest):
 
         db.add(Message(conversation_id=conversation.id, role="user", content=request.message))
 
-        answer = answer_with_context(request.message, history=history)
+        assistant_name = _get_assistant_name(db)
+        answer = answer_with_context(request.message, history=history, assistant_name=assistant_name)
 
         db.add(Message(conversation_id=conversation.id, role="assistant", content=answer))
         db.commit()
@@ -85,3 +93,29 @@ def search_memory(q: str, top_k: int = 3):
     except RuntimeError as e:
         logger.error(f"Memory search failed: {e}")
         raise HTTPException(status_code=503, detail=str(e))
+
+
+@router.get("/settings", response_model=SettingsResponse)
+def get_settings():
+    db = SessionLocal()
+    try:
+        return SettingsResponse(assistant_name=_get_assistant_name(db))
+    finally:
+        db.close()
+
+
+@router.post("/settings", response_model=SettingsResponse)
+def update_settings(request: SettingsUpdate):
+    db = SessionLocal()
+    try:
+        name = request.assistant_name.strip() or DEFAULT_ASSISTANT_NAME
+        setting = db.get(Setting, "assistant_name")
+        if setting:
+            setting.value = name
+        else:
+            setting = Setting(key="assistant_name", value=name)
+            db.add(setting)
+        db.commit()
+        return SettingsResponse(assistant_name=name)
+    finally:
+        db.close()
