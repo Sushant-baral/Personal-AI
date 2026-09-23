@@ -51,6 +51,11 @@ class ChatViewModel(private val repository: ChatRepository) : ViewModel() {
         messages = emptyList()
     }
 
+    fun deleteConversation(id: Int) {
+        repository.deleteConversation(id)
+        refreshRecent()
+    }
+
     fun sendMessage(text: String) {
         val trimmed = text.trim()
         if (trimmed.isEmpty() || isSending) return

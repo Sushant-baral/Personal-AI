@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -116,6 +117,7 @@ fun HomeScreen(
                     RecentConversationRow(
                         conversation = conversation,
                         onClick = { onOpenConversation(conversation.id) },
+                        onDelete = { viewModel.deleteConversation(conversation.id) },
                     )
                 }
             }
@@ -127,9 +129,10 @@ fun HomeScreen(
 private fun RecentConversationRow(
     conversation: ConversationRecord,
     onClick: () -> Unit,
+    onDelete: () -> Unit,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
-    Column(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(
@@ -138,20 +141,30 @@ private fun RecentConversationRow(
                 onClick = onClick,
             )
             .padding(vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(
-            text = conversation.title,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onBackground,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
-        Spacer(Modifier.height(2.dp))
-        Text(
-            text = relativeDay(conversation.updatedAt),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = conversation.title,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onBackground,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Spacer(Modifier.height(2.dp))
+            Text(
+                text = relativeDay(conversation.updatedAt),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        IconButton(onClick = onDelete) {
+            Icon(
+                imageVector = Icons.Filled.Close,
+                contentDescription = "Delete conversation",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
     }
 }
 

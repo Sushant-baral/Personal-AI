@@ -19,7 +19,7 @@ android {
         // Phase 1 FastAPI backend runs (uvicorn app.main:app --host 127.0.0.1 --port 8000).
         // If you run on a physical device, change this to your computer's LAN IP,
         // e.g. "http://192.168.1.23:8000/"
-        buildConfigField("String", "API_BASE_URL", "\"http://192.168.0.6:8000/\"")
+        buildConfigField("String", "API_BASE_URL", "\"http://100.85.220.30:8000/\"")
     }
 
     buildTypes {

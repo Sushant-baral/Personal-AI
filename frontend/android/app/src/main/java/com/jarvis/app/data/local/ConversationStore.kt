@@ -37,6 +37,14 @@ class ConversationStore(context: Context) {
 
     fun get(id: Int): ConversationRecord? = loadAll().find { it.id == id }
 
+    fun delete(id: Int) {
+        val all = loadAll().toMutableList()
+        all.removeAll { it.id == id }
+        prefs.edit()
+            .putString(KEY_CONVERSATIONS, gson.toJson(all))
+            .apply()
+    }
+
     companion object {
         private const val KEY_CONVERSATIONS = "conversations"
     }

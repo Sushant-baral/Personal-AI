@@ -18,6 +18,8 @@ class ChatRepository(
 
     fun getConversation(id: Int): ConversationRecord? = store.get(id)
 
+    fun deleteConversation(id: Int) = store.delete(id)
+
     /**
      * Sends [text] to the assistant, appending both the user message and the
      * reply to the given conversation's local record (creating a new one
